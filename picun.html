@@ -1,0 +1,343 @@
+<meta name='viewport' content='width=device-width, initial-scale=1'/><!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Квиз по теме "Союзы" -- 7 класс</title>
+    <style>
+        :root {
+            --red: #ff4154;
+            --blue: #1368ce;
+            --yellow: #ffa602;
+            --green: #26890c;
+            --dark-bg: #121212;
+            --card-bg: #1e1e1e;
+            --text: #ffffff;
+            --text-secondary: #b3b3b3;
+            --transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background-color: var(--dark-bg);
+            color: var(--text);
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        #quiz-container {
+            width: 90%;
+            max-width: 800px;
+            background: var(--card-bg);
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Анимации */
+        .fade-in {
+            animation: fadeIn 0.6s forwards;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Стартовый экран */
+        #intro-screen {
+            text-align: center;
+        }
+
+        .description {
+            color: var(--text-secondary);
+            line-height: 1.6;
+            margin: 20px 0 40px;
+            font-size: 1.1rem;
+        }
+
+        .start-btn, .restart-btn {
+            background: var(--blue);
+            color: white;
+            padding: 18px 45px;
+            border: none;
+            border-radius: 12px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .start-btn:hover {
+            background: #1a7df5;
+            transform: scale(1.05);
+            box-shadow: 0 0 20px rgba(19, 104, 206, 0.4);
+        }
+
+        /* Интерфейс квиза */
+        #quiz-ui, #results {
+            display: none;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            font-weight: 600;
+        }
+
+        .timer-bar-container {
+            width: 100%;
+            height: 8px;
+            background: #333;
+            border-radius: 4px;
+            margin-bottom: 35px;
+            overflow: hidden;
+        }
+
+        #timer-bar {
+            width: 100%;
+            height: 100%;
+            background: var(--blue);
+            transition: width 1s linear, background-color 0.3s;
+        }
+
+        .question-text {
+            font-size: 1.6rem;
+            font-weight: 700;
+            margin-bottom: 40px;
+            text-align: center;
+        }
+
+        .options-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .option-btn {
+            border: none;
+            border-radius: 12px;
+            padding: 25px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: white;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 90px;
+            opacity: 0;
+            transform: translateY(10px);
+        }
+
+        .option-btn.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .option-btn:hover {
+            filter: brightness(1.2);
+            transform: scale(1.02);
+        }
+
+        .btn-0 { background-color: var(--red); }
+        .btn-1 { background-color: var(--blue); }
+        .btn-2 { background-color: var(--yellow); }
+        .btn-3 { background-color: var(--green); }
+
+        /* Результаты */
+        .stat-card {
+            background: #2a2a2a;
+            margin: 10px 0;
+            padding: 20px;
+            border-radius: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .res-val { font-weight: bold; font-size: 1.2rem; }
+
+        @media (max-width: 600px) {
+            .options-grid { grid-template-columns: 1fr; }
+            #quiz-container { padding: 20px; }
+        }
+    </style>
+</head>
+<body>
+
+<div id="quiz-container">
+    <div id="intro-screen" class="fade-in">
+        <h1 style="color: var(--blue);">Квиз: Союзы (7 класс)</h1>
+        <p class="description">
+            Добро пожаловать в интерактивный тест по русскому языку!<br>
+            Вам предстоит ответить на <b>15 вопросов</b>. <br><br>
+            ⏳ На каждый вопрос дается <b>60 секунд</b>.<br>
+            ⚠️ Если время выйдет, ответ не будет засчитан.<br>
+            🔀 Задания перемешиваются при каждом запуске.
+        </p>
+        <button class="start-btn" onclick="startQuiz()">Начать квиз</button>
+    </div>
+
+    <div id="quiz-ui">
+        <div class="header">
+            <span id="question-counter">Вопрос 1 / 15</span>
+            <span id="timer-text" style="color: var(--blue);">60с</span>
+        </div>
+        <div class="timer-bar-container">
+            <div id="timer-bar"></div>
+        </div>
+        <div class="question-text" id="question-text">Текст вопроса</div>
+        <div class="options-grid" id="options-grid"></div>
+    </div>
+
+    <div id="results" class="fade-in">
+        <h2 style="text-align: center; margin-bottom: 30px;">Твой результат</h2>
+        <div class="stat-card"><span>Верно:</span> <span id="res-correct" class="res-val" style="color: var(--green);">0</span></div>
+        <div class="stat-card"><span>Неверно:</span> <span id="res-wrong" class="res-val" style="color: var(--red);">0</span></div>
+        <div class="stat-card"><span>Пропущено (время):</span> <span id="res-timeout" class="res-val" style="color: var(--text-secondary);">0</span></div>
+        <div style="text-align: center; margin-top: 30px;">
+            <button class="restart-btn" onclick="location.reload()">Пройти еще раз</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    const questionsData = [
+        { q: "Укажите разряд союза И по значению:", a: ["Соединительный", "Противительный", "Разделительный", "Подчинительный"], c: 0 },
+        { q: "Выберите составной союз:", a: ["Что", "Потому что", "Однако", "Если"], c: 1 },
+        { q: "В каком варианте 'ЧТО БЫ' пишется раздельно?", a: ["Я хочу, (что)бы вы спели.", "Он замолчал, (что)бы отдохнуть.", "(Что)бы мне почитать сегодня?", "Поспеши, (что)бы не опоздать."], c: 2 },
+        { q: "Укажите противительный союз:", a: ["Да (=и)", "Или", "Зато", "Тоже"], c: 2 },
+        { q: "Союз -- это...", a: ["Самостоятельная часть речи", "Служебная часть речи", "Член предложения", "Особая форма глагола"], c: 1 },
+        { q: "Укажите подчинительный союз:", a: ["Либо", "Или", "Будто", "Однако"], c: 2 },
+        { q: "Как пишутся союзы ТОЖЕ, ТАКЖЕ (в значении И)?", a: ["Всегда раздельно", "Через дефис", "Слитно", "Зависит от ударения"], c: 2 },
+        { q: "Найдите разделительный союз:", a: ["Не то... не то", "Ни... ни", "Да и", "Словно"], c: 0 },
+        { q: "В каком предложении союз ТАКЖЕ пишется слитно?", a: ["Он делал (так)же, как я.", "Отец (так)же рассердился.", "Все осталось (так)же.", "Поступи (так)же, как вчера."], c: 1 },
+        { q: "Укажите целевой союз:", a: ["Так как", "Потому что", "Для того чтобы", "Если"], c: 2 },
+        { q: "Выберите союз, который всегда является сочинительным:", a: ["Когда", "Но", "Хотя", "Чтобы"], c: 1 },
+        { q: "Найдите союз со значением условия:", a: ["Будто", "Хотя", "Если", "Что"], c: 2 },
+        { q: "Укажите союз со значением уступки:", a: ["Хотя", "Пока", "Будто", "Так как"], c: 0 },
+        { q: "С какими союзами часто путают местоимение ЧТО с частицей БЫ?", a: ["Ибо", "Чтобы", "Дабы", "Либо"], c: 1 },
+        { q: "В каком предложении 'ЗАТО' является союзом?", a: ["Спрячься (за)то дерево.", "Он мал, (за)то удал.", "Не берись (за)то дело.", "Благодарю (за)то письмо."], c: 1 }
+    ];
+
+    let currentIdx = 0;
+    let score = { correct: 0, wrong: 0, timeout: 0 };
+    let timer;
+    let timeLeft = 60;
+
+    function startQuiz() {
+        // Перемешиваем вопросы
+        questionsData.sort(() => Math.random() - 0.5);
+        
+        document.getElementById('intro-screen').style.display = 'none';
+        const ui = document.getElementById('quiz-ui');
+        ui.style.display = 'block';
+        ui.classList.add('fade-in');
+        
+        showQuestion();
+    }
+
+    function startTimer() {
+        clearInterval(timer);
+        timeLeft = 60;
+        updateTimerUI();
+        
+        timer = setInterval(() => {
+            timeLeft--;
+            updateTimerUI();
+            
+            if (timeLeft <= 0) {
+                clearInterval(timer);
+                score.timeout++;
+                handleNext();
+            }
+        }, 1000);
+    }
+
+    function updateTimerUI() {
+        document.getElementById('timer-text').innerText = timeLeft + 'с';
+        const percent = (timeLeft / 60) * 100;
+        const bar = document.getElementById('timer-bar');
+        bar.style.width = percent + '%';
+        
+        if (timeLeft <= 10) {
+            bar.style.background = 'var(--red)';
+            document.getElementById('timer-text').style.color = 'var(--red)';
+        } else {
+            bar.style.background = 'var(--blue)';
+            document.getElementById('timer-text').style.color = 'var(--blue)';
+        }
+    }
+
+    function showQuestion() {
+        if (currentIdx >= questionsData.length) {
+            showResults();
+            return;
+        }
+
+        const q = questionsData[currentIdx];
+        document.getElementById('question-counter').innerText = `Вопрос ${currentIdx + 1} / ${questionsData.length}`;
+        document.getElementById('question-text').innerText = q.q;
+        
+        const grid = document.getElementById('options-grid');
+        grid.innerHTML = '';
+        
+        q.a.forEach((opt, index) => {
+            const btn = document.createElement('button');
+            btn.className = `option-btn btn-${index}`;
+            btn.innerText = opt;
+            btn.onclick = () => handleAnswer(index);
+            grid.appendChild(btn);
+            
+            // Плавное появление кнопок с задержкой
+            setTimeout(() => btn.classList.add('show'), index * 100);
+        });
+
+        startTimer();
+    }
+
+    function handleAnswer(choice) {
+        clearInterval(timer);
+        if (choice === questionsData[currentIdx].c) {
+            score.correct++;
+        } else {
+            score.wrong++;
+        }
+        handleNext();
+    }
+
+    function handleNext() {
+        currentIdx++;
+        // Плавный переход
+        document.getElementById('question-text').style.opacity = '0';
+        document.querySelectorAll('.option-btn').forEach(b => b.style.opacity = '0');
+        
+        setTimeout(() => {
+            document.getElementById('question-text').style.opacity = '1';
+            showQuestion();
+        }, 400);
+    }
+
+    function showResults() {
+        document.getElementById('quiz-ui').style.display = 'none';
+        const res = document.getElementById('results');
+        res.style.display = 'block';
+        
+        document.getElementById('res-correct').innerText = score.correct;
+        document.getElementById('res-wrong').innerText = score.wrong;
+        document.getElementById('res-timeout').innerText = score.timeout;
+    }
+</script>
+
+</body>
+</html>
